@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meditation Tracker</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --accent-color: #8b5cf6;
+            --card-bg: rgba(0, 0, 0, 0.1);
+            --gradient-opacity: 0.3;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .gradient-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+        .gradient {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            opacity: var(--gradient-opacity);
+            filter: blur(100px);
+            transition: opacity 0.3s;
+        }
+        .gradient-left {
+            left: -25%;
+            background: linear-gradient(to right, #4c1d95, #5b21b6, transparent);
+            border-radius: 50%;
+        }
+        .gradient-right {
+            right: -25%;
+            background: linear-gradient(to left, #4c1d95, #5b21b6, transparent);
+            border-radius: 50%;
+        }
+        .gradient-center {
+            left: 25%;
+            width: 50%;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.5) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 70%);
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 4rem;
+        }
+        .hero-content {
+            flex: 1;
+            margin-right: 2rem;
+        }
+        .hero-text {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .free-text {
+            font-size: 4rem;
+            font-weight: bold;
+            color: var(--accent-color);
+            margin-right: 1rem;
+        }
+        .mindfulness-text {
+            font-size: 2rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .hero-image {
+            flex: 1;
+            height: 300px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 10px;
+        }
+        .slider {
+            display: flex;
+            transition: transform 0.3s ease-in-out;
+            height: 100%;
+        }
+        .slide {
+            flex: 0 0 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            background-color: var(--card-bg);
+        }
+        .slider-nav {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+        }
+        .slider-nav button {
+            background-color: var(--accent-color);
+            border: none;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+        button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            opacity: 0.9;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 4rem;
+        }
+        .feature-box {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .theme-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        .theme-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .slider-switch {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        .slider-switch:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        input:checked + .slider-switch {
+            background-color: var(--accent-color);
+        }
+        input:checked + .slider-switch:before {
+            transform: translateX(26px);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            background-color: var(--bg-color);
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+        }
+        .modal.show {
+            display: block;
+            opacity: 1;
+        }
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: var(--accent-color);
+        }
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.7);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+        .signup-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .signup-form input {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid var(--accent-color);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        footer {
+            background-color: var(--card-bg);
+            padding: 4rem 0;
+            margin-top: 4rem;
+        }
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .footer-section {
+            flex: 1;
+            margin-right: 2rem;
+            margin-bottom: 2rem;
+        }
+        .footer-section h3 {
+            margin-bottom: 1rem;
+        }
+        .footer-section ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+        .footer-section a {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        .footer-section a:hover {
+            color: var(--accent-color);
+        }
+      
+      .img1{
+        background-image:url('https://images.unsplash.com/photo-1619011684100-e47db1857560?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MTk5MTA4Nzl8&ixlib=rb-4.0.3&q=80&w=400');
+        background-size: cover;
+        
+      }
+      .img2{
+        background-image: url('https://images.unsplash.com/photo-1580527602692-c8558771b2c3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MTk5MTEzMDl8&ixlib=rb-4.0.3&q=80&w=400');
+         background-size: contain;
+      }
+      .img3{
+         background-image: url('https://images.unsplash.com/photo-1512438248247-f0f2a5a8b7f0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3wzMjM4NDZ8MHwxfHJhbmRvbXx8fHx8fHx8fDE3MTk5MTEzMDl8&ixlib=rb-4.0.3&q=80&w=400');
+         background-size: cover;
+        background-repeat:no-repeat;
+        
+      }
+      .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: inline-block;
+            position: relative;
+        }
+        .logo::after {
+            content: "Mandal Tracker";
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb);
+            filter: blur(20px);
+            opacity: 0.7;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-container">
+        <div class="gradient gradient-left"></div>
+        <div class="gradient gradient-center"></div>
+        <div class="gradient gradient-right"></div>
+    </div>
+    <div class="container">
+        <header>
+            <div class="logo">
+              <h1>Mandal Tracker</h1>
+            </div>
+            <div>
+                <button id="getStartedBtn">Get Started</button>
+                <label class="theme-switch">
+                    <input type="checkbox" id="themeToggle">
+                    <span class="slider-switch"></span>
+                </label>
+            </div>
+        </header>
+        <main>
+            <section class="hero">
+                <div class="hero-content">
+                    <div class="hero-text">
+                        <div class="free-text">FREE</div>
+                        <div class="mindfulness-text">Your path to mindfulness continues</div>
+                    </div>
+                    <p>Track your meditation journey and unlock inner peace.</p>
+                    <button onclick="startMeditating()">Start Meditating</button>
+                </div>
+                <div class="hero-image">
+                    <div class="slider" id="slider">
+                        <div class="slide img1">Peaceful Image 1</div>
+                        <div class="slide img2">Calming Image 2</div>
+                        <div class="slide img3">Serene Image 3</div>
+                    </div>
+                    <div class="slider-nav" id="sliderNav"></div>
+                </div>
+            </section>
+            <section class="feature-grid">
+                <div class="feature-box">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Track Sessions</h3>
+                    <p>Log and monitor your daily meditation practice</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Set Goals</h3>
+                    <p>Define and achieve your mindfulness objectives</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">📊</div>
+                    <h3>View Progress</h3>
+                    <p>Visualize your meditation journey over time</p>
+                </div>
+                <div class="feature-box">
+                    <div class="feature-icon">🧘</div>
+                    <h3>Guided Sessions</h3>
+                    <p>Access a library of guided meditation exercises</p>
+                </div>
+            </section>
+        </main>
+    </div>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Features</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">About Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Resources</h3>
+                    <ul>
+                        <li><a href="#">Meditation Guide</a></li>
+                        <li><a href="#">Mindfulness Tips</a></li>
+                        <li><a href="#">FAQ</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Legal</h3>
+                    <ul>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Cookie Policy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h3>Contact Us</h3>
+                    <p>Email: info@meditationtracker.com</p>
+                    <p>Phone: (123) 456-7890</p>
+                    <p>Address: 123 Zen Street, Mindful City, MC 12345</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Sign Up</h2>
+            <form class="signup-form">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme switching
+        const themeToggle = document.getElementById('themeToggle');
+        function setTheme(isDark) {
+            const root = document.documentElement;
+            if (isDark) {
+                root.style.setProperty('--bg-color', '#121212');
+                root.style.setProperty('--text-color', '#ffffff');
+                root.style.setProperty('--card-bg', 'rgba(255, 255, 255, 0.1)');
+                root.style.setProperty('--gradient-opacity', '0.7');
+            } else {
+                root.style.setProperty('--bg-color', '#ffffff');
+                root.style.setProperty('--text-color', '#000000');
+                root.style.setProperty('--card-bg', 'rgba(0, 0, 0, 0.1)');
+                root.style.setProperty('--gradient-opacity', '0.3');
+            }
+        }
+        themeToggle.addEventListener('change', function() {
+            setTheme(this.checked);
+        });
+        
+        // Set initial theme based on system preference
+        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            themeToggle.checked = true;
+            setTheme(true);
+        } else {
+            themeToggle.checked = false;
+            setTheme(false);
+        }
+
+        // Image Slider
+        const slider = document.getElementById('slider');
+        const sliderNav = document.getElementById('sliderNav');
+        const slides = slider.children;
+       let currentSlide = 0;
+
+        function showSlide(index) {
+            slider.style.transform = `translateX(-${index * 100}%)`;
+            currentSlide = index;
+            updateNav();
+        }
+
+        function updateNav() {
+            sliderNav.innerHTML = '';
+            for (let i = 0; i < slides.length; i++) {
+                const button = document.createElement('button');
+                button.onclick = () => showSlide(i);
+                sliderNav.appendChild(button);
+            }
+        }
+
+        function nextSlide() {
+            showSlide((currentSlide + 1) % slides.length);
+        }
+
+        function prevSlide() {
+            showSlide((currentSlide - 1 + slides.length) % slides.length);
+        }
+
+        // Touch events for slider
+        let touchStartX = 0;
+        slider.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        slider.addEventListener('touchend', e => {
+            const touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX) nextSlide();
+            if (touchEndX > touchStartX) prevSlide();
+        });
+
+        // Arrow key navigation for slider
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowRight') nextSlide();
+            if (e.key === 'ArrowLeft') prevSlide();
+        });
+
+        // Initialize slider
+        updateNav();
+        showSlide(0);
+
+        // Modal functionality
+        const modal = document.getElementById('signupModal');
+        const getStartedBtn = document.getElementById('getStartedBtn');
+        const closeBtn = document.querySelector('.close');
+
+        function openModal(event) {
+            modal.classList.add('show');
+            createRipple(event, true);
+        }
+
+        function closeModal(event) {
+            createRipple(event, false);
+            setTimeout(() => {
+                modal.classList.remove('show');
+            }, 300);
+        }
+
+        function createRipple(event, isOpening) {
+            const ripple = document.createElement('div');
+            ripple.classList.add('ripple');
+            const rect = modal.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = isOpening ? event.clientX - rect.left : rect.width / 2;
+            const y = isOpening ? event.clientY - rect.top : rect.height / 2;
+            
+            ripple.style.width = ripple.style.height = `${size}px`;
+            ripple.style.left = `${x - size / 2}px`;
+            ripple.style.top = `${y - size / 2}px`;
+
+            modal.appendChild(ripple);
+
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        }
+
+        getStartedBtn.addEventListener('click', openModal);
+        closeBtn.addEventListener('click', closeModal);
+
+        window.addEventListener('click', function(event) {
+            if (event.target == modal) {
+                closeModal(event);
+            }
+        });
+
+        // Close modal with Esc key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && modal.classList.contains('show')) {
+                closeModal(event);
+            }
+        });
+
+        // Prevent form submission (for demo purposes)
+        document.querySelector('.signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Signup functionality would be implemented here.');
+        });
+
+        // Start meditating function
+        function startMeditating() {
+            alert("Starting your meditation session!");
+            // Additional functionality for starting a meditation session would be implemented here
+        }
+    </script>
+</body>
+</html>
